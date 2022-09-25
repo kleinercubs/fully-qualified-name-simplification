@@ -7,7 +7,7 @@
 在simplified dataset中
 1.  Eval: 简化了fully qualified name的atlas/RawDataset
 2.  Testing: 同上
-3.  Training: ~~太大了, 不能直接上传. ~~ 已上传
+3.  Training: ~~太大了, 不能直接上传.~~ 已上传
 4.  simp_csv: 简化后的数据集生成的csv
     1.  old 使用atlas原始的方式
     2.  new 补充了non-typeable-arg类型的assertion生成的candidates
