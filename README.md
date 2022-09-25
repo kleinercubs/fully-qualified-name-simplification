@@ -14,3 +14,6 @@
 
 注意: 如果文件内存在'var24678<空格>', 将其替换为''
 
+经过toga处理的数据集后缀是.csv, 在google drive中的simp_csv.tar
+https://drive.google.com/file/d/1GhHX5xBeyVe-MGePtiNKcvgOScqvg3ew/view?usp=sharing
+
