@@ -9,7 +9,9 @@ class X {
             lengthAndScope=lengthAndScope<<(org.eclipse.lsp4j.util.SemanticHighlightingTokens.LENGTH_SHIFT); 
             lengthAndScope|=scope;buffer.putInt(character); 
             buffer.putInt(lengthAndScope); 
-        } 
+        }
+        org . junit . Assert . assertEquals ( software . amazon . awssdk . protocols . json . AwsJsonErrorMessageParserTest . MESSAGE_CONTENT , parsed );
+        assertEquals( a.b.c.D.E, parsed);
         return java.util.Base64.getEncoder().encodeToString(buffer.array());
     }
 }

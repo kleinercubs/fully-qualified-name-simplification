@@ -14,6 +14,9 @@ import com.github.javaparser.utils.SourceRoot;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.FieldAccessExpr;
 import com.github.javaparser.ast.expr.SimpleName;
+import com.github.javaparser.ast.expr.ThisExpr;
+import com.github.javaparser.ast.expr.Expression;
+import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 import com.github.javaparser.StaticJavaParser;
@@ -52,12 +55,12 @@ public class Processor {
         // System.out.println(n.getChildNodes());
         int count = 0;
         SimpleName field = new SimpleName("...");
-        for (FieldAccessExpr node: n.getChildNodesByType(FieldAccessExpr.class)){
+        for (MethodCallExpr node: n.getChildNodesByType(MethodCallExpr.class)){
             count += 1;
             if (count == 1) field = node.getName();
-            // System.out.println(node);
-            // System.out.println(node.getClass().getName());
+            System.out.println(node + " : "  + node.getClass().getName());
             n.remove(node);
+            break;
         }
 
         SimpleName previous = n.getName();
@@ -65,6 +68,61 @@ public class Processor {
             // System.out.println(field);
             n.setName(field + "." + previous);
         }
+    }
+
+    // private static void processFieldAccessExprNode(Node n){
+    //     System.out.println(n);
+    //     System.out.println(n.getChildNodes());
+    //     // n = n.getChildNodes().get(n.getChildNodes().size() - 1);
+    //     FieldAccessExpr last_node = new FieldAccessExpr();
+    //     for (FieldAccessExpr node: n.getChildNodesByType(FieldAccessExpr.class)){
+    //         System.out.println("remove " + node + "            " + node.getClass().getName() + "            " + node.getTypeArguments());
+    //         last_node = node;
+    //         // n.remove(node);
+    //     }
+    //     System.out.println("==END==");
+    //     System.out.println(n);
+    //     System.out.println(n.getChildNodes());
+    //     // System.out.println(last_node.getChildNodes());
+    //     // n.setName(last_node.getName());
+
+    //     // SimpleName previous = n.getName();
+    //     // if (field.asString() != "..."){
+    //     //     // System.out.println(field);
+    //     //     n.setName(field + "." + previous);
+    //     // }
+    // }
+    private static void processFieldAccessExprNode(FieldAccessExpr n) {
+        Node scope = n.getScope();
+        
+        // System.out.println("Before FieldAccessExpr " + n + " " + scope.toString() + " " + scope.getClass().getName());
+        if (scope instanceof FieldAccessExpr) {
+            FieldAccessExpr _scope = (FieldAccessExpr) scope;
+            n.setScope(new NameExpr(_scope.getName()));
+        } else {
+            // ???
+        }
+
+        // System.out.println(n + " || " + n.getParentNode() + " || " + n.findAncestor(FieldAccessExpr.class) + " || " + n.getScope() + " || " + n.getName());
+        // if (n.findAncestor(FieldAccessExpr.class).toString() != n.getParentNode().toString()) {
+        //     for (Node node : n.getChildNodesByType(FieldAccessExpr.class)) {
+        //         System.out.println(node + " | " + n.getTypeArguments().toString());
+        //         // if (n.getTypeArguments().toString().contains(node.toString())) {
+        //         //     node.accept(new ModifierVisitor<Void>() {
+        //         //         @Override
+        //         //         public Visitable visit(FieldAccessExpr n, Void arg) {
+        //         //             processFieldAccessExprNode(n);
+        //         //             return super.visit(n, arg);
+        //         //         }
+        //         //     }, null);
+        //         //     continue;
+        //         // }
+        //         System.out.println("  -remove  " + node);
+        //         n.remove(node);
+        //     }
+        // }
+        
+        // System.out.println("==" + n + " || " + n.getParentNode() + " || " + n.findAncestor(FieldAccessExpr.class));
     }
 
     public static void main(String[] args) {
@@ -110,10 +168,6 @@ public class Processor {
         // }.visitPreOrder(cu);
 
         cu.accept(new ModifierVisitor<Void>() {
-            /**
-             * For every if-statement, see if it has a comparison using "!=".
-             * Change it to "==" and switch the "then" and "else" statements around.
-             */
             @Override
             public Visitable visit(ClassOrInterfaceType n, Void arg) {
                 processClassOrInterfaceNode(n);
@@ -121,14 +175,21 @@ public class Processor {
             }
         }, null);
 
+        // cu.accept(new ModifierVisitor<Void>() {
+        //     @Override
+        //     public Visitable visit(MethodCallExpr n, Void arg) {
+        //         processMethodCallNode(n);
+        //         return super.visit(n, arg);
+        //     }
+        // }, null);
+
         cu.accept(new ModifierVisitor<Void>() {
             @Override
-            public Visitable visit(MethodCallExpr n, Void arg) {
-                processMethodCallNode(n);
+            public Visitable visit(FieldAccessExpr n, Void arg) {
+                processFieldAccessExprNode(n);
                 return super.visit(n, arg);
             }
         }, null);
-
         // This saves all the files we just read to an output directory.  
         sourceRoot.saveAll(
                 // The path of the Maven module/project which contains the Processor class.
