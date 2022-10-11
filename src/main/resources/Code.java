@@ -1,5 +1,6 @@
 class X {
-    encode(){ 
+    encode(){
+        org.junit.Assert.assertEquals(a.b.c.D.E, parsed);
         if(org.eclipse.xtext.xbase.lib.IterableExtensions.isNullOrEmpty(tokens)){return"";} 
         java.nio.ByteBuffer buffer=java.nio.ByteBuffer.allocate((((com.google.common.collect.Iterables.size(tokens))*2)*4));
         for(org.eclipse.lsp4j.util.SemanticHighlightingTokens.Token token:tokens){
