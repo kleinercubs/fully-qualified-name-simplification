@@ -250,17 +250,19 @@ public class Processor {
         Map<String, LinkedTreeMap> jsonInput = gson.fromJson(new FileReader("jsonInput4JavaParser/Testing.json"), Map.class);
         int cnt = 0;
         for (String key : jsonInput.keySet()) {
-            cnt += 1;
-            if (cnt > 5) break;
-            LinkedTreeMap<String, String> value = jsonInput.get(key);
-            System.out.println("key: " + key);
+//            System.out.println("Processing " + key);
 
-            String simplified_assertion =  simplify_str( value.get("assertion"));
-            System.out.println("simplified assertion: " + simplified_assertion);
-            String simplified_testMethod =  simplify_str( value.get("testMethod"));
-            System.out.println("simplified testMethod: " + simplified_testMethod);
-            String simplified_focalMethod = simplify_str( value.get("focalMethod"));
-            System.out.println("simplified focalMethod: " + simplified_focalMethod);
+            if (cnt > 1000) break;
+            try {
+                LinkedTreeMap<String, String> value = jsonInput.get(key);
+//                System.out.println("key: " + key);
+
+                String simplified_assertion = simplify_str(value.get("assertion"));
+//                System.out.println("simplified assertion: " + simplified_assertion);
+                String simplified_testMethod = simplify_str(value.get("testMethod"));
+//                System.out.println("simplified testMethod: " + simplified_testMethod);
+                String simplified_focalMethod = simplify_str(value.get("focalMethod"));
+//                System.out.println("simplified focalMethod: " + simplified_focalMethod);
 
             /* todo:
                 1. 现在的simplify_str是昨天更新的版本. 可以把a.b.c.D.E处理成D.E, 不会丢弃. 但是和最早的版本相比. 会多留下来一些类似 nio. 这样的前缀
@@ -270,10 +272,14 @@ public class Processor {
                     3. focalMethod中, func(Type, Type) 变成 func(Type var24678, Type var24678)
                     4. 除此之外, 就是前后加上了 "Class XYZ { void" 和 "}" 了.
              */
+            }catch (Exception e){
+                error_lines.add(cnt);
+            }
 
-
+            cnt += 1;
 
         }
+        System.out.println(error_lines);
     }
 
 
