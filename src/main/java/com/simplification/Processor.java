@@ -27,6 +27,7 @@ import com.github.javaparser.ast.type.VoidType;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.PackageDeclaration;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.reflect.TypeToken;
 
@@ -34,6 +35,7 @@ import java.io.*;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -215,7 +217,6 @@ public class Processor {
         StaticJavaParser
                 .getConfiguration()
                 .setSymbolResolver(symbolSolver);
-
         CompilationUnit cu = StaticJavaParser.parse(code);
 
 
@@ -248,38 +249,63 @@ public class Processor {
         // read jsonInput4JavaParser/Testing.json
 
         Map<String, LinkedTreeMap> jsonInput = gson.fromJson(new FileReader("jsonInput4JavaParser/Testing.json"), Map.class);
+        HashSet<Integer> error_lines = new HashSet<>();
+        int simplified_assertion_cnt = 0, simplified_focalMethod_cnt = 0, simplified_testMethod_cnt = 0;
         int cnt = 0;
-        for (String key : jsonInput.keySet()) {
-//            System.out.println("Processing " + key);
+        try {
+            FileWriter assertionWriter = new FileWriter("assertion.txt");
+            FileWriter testMethodWriter = new FileWriter("testMethod.txt");
+            FileWriter focalMethodWriter = new FileWriter("focalMethod.txt");
+            for (String key : jsonInput.keySet()) {
+    //            System.out.println("Processing " + key);
 
-            if (cnt > 1000) break;
-            try {
-                LinkedTreeMap<String, String> value = jsonInput.get(key);
-//                System.out.println("key: " + key);
+                // if (cnt > 1000) break;
+                try {
+                    LinkedTreeMap<String, String> value = jsonInput.get(key);
+                    String simplified_assertion = simplify_str(value.get("assertion"));
+                    // System.out.println(simplified_assertion);
+                    String simplified_testMethod = simplify_str(value.get("testMethod"));
+                    String simplified_focalMethod = simplify_str(value.get("focalMethod"));
+                    // JsonObject obj = new JsonObject();
+                    // obj.addProperty("assertion", simplified_assertion);
+                    // obj.addProperty("focalMethod", simplified_focalMethod);
+                    // obj.addProperty("testMethod", simplified_testMethod);
+                    // System.out.println(obj.toString());
+                    // assertionWriter.write(obj.toString());
+                    // System.out.println(simplified_assertion);
+                    simplified_assertion_cnt += 1;
+                    simplified_focalMethod_cnt += 1;
+                    simplified_testMethod_cnt += 1;
+                    assertionWriter.write(simplified_assertion);
+                    testMethodWriter.write(simplified_testMethod);
+                    focalMethodWriter.write(simplified_focalMethod);
+                /* todo:
+                    1. 现在的simplify_str是昨天更新的版本. 可以把a.b.c.D.E处理成D.E, 不会丢弃. 但是和最早的版本相比. 会多留下来一些类似 nio. 这样的前缀
+                    2. 这里输出的simplified assertion, testMethod, focalMethod和atlas相比
+                        1. assertion变化不大.
+                        2. testMethod中, "<AssertPlaceHolder>;" 变成了  \/* "<AssertPlaceHolder>" ;*\/  <-- 这里又加了转义符号, 具体是什么样你看一下数据.
+                        3. focalMethod中, func(Type, Type) 变成 func(Type var24678, Type var24678)
+                        4. 除此之外, 就是前后加上了 "Class XYZ { void" 和 "}" 了.
+                */
+                }catch (Exception e){
+                    System.out.println(e);
+                    // error_lines.add(cnt);
+                }
 
-                String simplified_assertion = simplify_str(value.get("assertion"));
-//                System.out.println("simplified assertion: " + simplified_assertion);
-                String simplified_testMethod = simplify_str(value.get("testMethod"));
-//                System.out.println("simplified testMethod: " + simplified_testMethod);
-                String simplified_focalMethod = simplify_str(value.get("focalMethod"));
-//                System.out.println("simplified focalMethod: " + simplified_focalMethod);
+                cnt += 1;
 
-            /* todo:
-                1. 现在的simplify_str是昨天更新的版本. 可以把a.b.c.D.E处理成D.E, 不会丢弃. 但是和最早的版本相比. 会多留下来一些类似 nio. 这样的前缀
-                2. 这里输出的simplified assertion, testMethod, focalMethod和atlas相比
-                    1. assertion变化不大.
-                    2. testMethod中, "<AssertPlaceHolder>;" 变成了  \/* "<AssertPlaceHolder>" ;*\/  <-- 这里又加了转义符号, 具体是什么样你看一下数据.
-                    3. focalMethod中, func(Type, Type) 变成 func(Type var24678, Type var24678)
-                    4. 除此之外, 就是前后加上了 "Class XYZ { void" 和 "}" 了.
-             */
-            }catch (Exception e){
-                error_lines.add(cnt);
             }
-
-            cnt += 1;
-
+            
+            assertionWriter.close();
+            testMethodWriter.close();
+            focalMethodWriter.close();
+            
+        } catch (IOException e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
         }
-        System.out.println(error_lines);
+        System.out.println(simplified_assertion_cnt + " " + simplified_focalMethod_cnt + " " + simplified_testMethod_cnt);
+        // System.out.println(error_lines);
     }
 
 
